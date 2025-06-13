@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Breast Cancer Prediction</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Balsamiq+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        /* Color scheme - pink, purple and black */
+        body {
+            font-family: 'Balsamiq Sans', cursive;
+            background-color: #f3e5f5;
+            font-weight: bold;
+        }
+        
+        .jumbotron {
+            background: linear-gradient(135deg, #e91e63, #9c27b0);
+            color: white;
+            border-radius: 0;
+            margin-bottom: 0;
+        }
+        
+        /* Back to top button */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        a, a:hover {
+            text-decoration: none;
+        }
+        
+        #button {
+            display: inline-block;
+            background: linear-gradient(135deg, #e91e63, #9c27b0);
+            width: 52px;
+            height: 52px;
+            text-align: center;
+            border-radius: 50%;
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            transition: background-color .3s, opacity .5s, visibility .5s;
+            opacity: 0;
+            visibility: hidden;
+            z-index: 1000;
+        }
+        
+        #button::after {
+            content: "\f077";
+            font-family: FontAwesome;
+            font-weight: normal;
+            font-style: normal;
+            font-size: 2em;
+            line-height: 50px;
+            color: #fff;
+        }
+        
+        #button:hover {
+            cursor: pointer;
+            background: linear-gradient(135deg, #9c27b0, #e91e63);
+        }
+        
+        #button:active {
+            background: linear-gradient(135deg, #9c27b0, #e91e63);
+        }
+        
+        #button.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* Tumor circles */
+        .tumor-circle {
+            border-radius: 50%;
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.5em;
+        }
+        
+        .benign-circle {
+            background: linear-gradient(135deg, #ff80ab, #e91e63);
+        }
+        
+        .malignant-circle {
+            background: linear-gradient(135deg, #7b1fa2, #4a148c);
+        }
+        
+        /* Form styling */
+        .form-section {
+            background: linear-gradient(135deg, #f8bbd0, #ce93d8);
+            padding: 20px;
+            margin: 40px 0;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .form-control {
+            border: 2px solid #9c27b0;
+            border-radius: 8px;
+        }
+        
+        .form-control:focus {
+            border-color: #e91e63;
+            box-shadow: 0 0 8px rgba(233, 30, 99, 0.5);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #e91e63, #9c27b0);
+            border: none;
+            border-radius: 25px;
+            padding: 10px 30px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #9c27b0, #e91e63);
+            transform: scale(1.05);
+        }
+        
+        /* Info section */
+        .info-section {
+            background: linear-gradient(135deg, #d1c4e9, #b39ddb);
+            padding: 20px;
+            margin: 40px 0;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .info-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #9c27b0, #673ab7);
+            color: white;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .info-button:hover {
+            transform: scale(1.05);
+            background: linear-gradient(135deg, #673ab7, #9c27b0);
+        }
+        
+        .info-content {
+            display: none;
+            padding: 15px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+        
+        .tumor-section {
+            padding: 30px 15px;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .benign-section {
+            background: linear-gradient(135deg, #f8bbd0, #fce4ec);
+        }
+        
+        .malignant-section {
+            background: linear-gradient(135deg, #e1bee7, #d1c4e9);
+        }
+        
+        /* Footer styling */
+        .footer {
+            background: linear-gradient(to right, #000000, #4a148c);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Back to top button -->
+    <a id="button"></a>
+
+    <!-- Header/Jumbotron -->
+    <div class="jumbotron">
+        <h1 align="center" style="margin-top:1px;">Breast Cancer Prediction</h1>
+        <p align="center">Redefining Breast Health For Younger Women</b>.</p>
+    </div>
+
+    <div class="container">
+        <!-- Tumor Information Section -->
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="tumor-section benign-section">
+                    <div class="tumor-circle benign-circle">Benign</div>
+                    <h2 style="text-align: center;">Benign Tumors</h2>
+                    <p style="font-size: 1.2em;">
+                        While a benign tumor isn't cancerous, it's wise to keep a close eye on any unusual growth or persistent discomfort. Sometimes, even non-cancerous growths can cause pressure or other issues that your doctor can help manage through observation or appropriate interventions. Regular check-ups are a good way to stay informed about your body's changes.
+                    </p>
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <div class="tumor-section malignant-section">
+                    <div class="tumor-circle malignant-circle">Malignant</div>
+                    <h2 style="text-align: center;">Malignant Tumors</h2>
+                    <p style="font-size: 1.2em;">
+                        Malignant tumors possess a remarkable ability called angiogenesis – they can stimulate the growth of new blood vessels to supply themselves with nutrients and oxygen. This process is crucial for their growth and spread (metastasis), essentially "feeding" the cancer and providing it with highways to other parts of the body. Blocking angiogenesis is a key target in some cancer therapies.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+       <!-- Info Section with Popups 
+        <div class="info-section">
+            <h2 align="center" style="color: #4a148c;">Breast Cancer Information</h2>
+            <div class="text-center">
+                <div class="info-button" id="what-is-cancer">What is Breast Cancer</div>
+                <div class="info-button" id="who-gets-cancer">Who gets Breast Cancer</div>
+                <div class="info-button" id="cancer-symptoms">What Are the Symptoms</div>
+            </div>
+            
+            <div id="what-is-cancer-content" class="info-content">
+                <h3>What is Breast Cancer</h3>
+                <p>
+                    Cancers are typically named after the part of the body from which they originate. Breast cancer originates in the breast tissue. Like other cancers, breast cancer can invade and grow into the tissue surrounding the breast. It can also travel to other parts of the body and form new tumors, a process called metastasis.
+                </p>
+            </div>
+            
+            <div id="who-gets-cancer-content" class="info-content">
+                <h3>Who gets Breast Cancer</h3>
+                <p>
+                    Breast cancer ranks second as a cause of cancer death in women (after lung cancer). Today, about 1 in 8 women (12%) will develop breast cancer in her lifetime. The American Cancer Society estimated that in 2017, about 252,710 women will be diagnosed with invasive breast cancer and about 40,610 will die from the disease.
+                </p>
+            </div>
+            
+            <div id="cancer-symptoms-content" class="info-content">
+                <h3>Some Symptoms of Breast Cancer include:</h3>
+                <ul>
+                    <li>A mass or lump, which may feel as small as a pea.</li>
+                    <li>A change in the size, shape, or contour of the breast.</li>
+                    <li>A blood-stained or clear fluid discharge from the nipple.</li>
+                    <li>Redness of the skin on the breast or nipple.</li>
+                    <li>An area that is distinctly different from any other area on either breast.</li>
+                </ul>
+            </div>
+        </div># -->
+
+
+        <!-- Form Section -->
+        <div class="form-section">
+            <h2 align="center" style="color: #4a148c;">Enter Patient Data</h2>
+            <form class="form-horizontal" action="/predict" method="post">
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="value1">Radius Mean</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="value1" placeholder="Enter radius_mean" name="value1" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="value2">Texture Mean</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="value2" placeholder="Enter texture_mean" name="value2" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="value3">Perimeter Mean</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="value3" placeholder="Enter perimeter_mean" name="value3" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="value4">Area Mean</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="value4" placeholder="Enter area_mean" name="value4" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="value5">Smoothness Mean</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="value5" placeholder="Enter smoothness_mean" name="value5" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="value6">Compactness Mean</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="value6" placeholder="Enter compactness_mean" name="value6" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="value7">Concavity Mean</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="value7" placeholder="Enter concavity_mean" name="value7" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="value8">Concave Points Mean</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="value8" placeholder="Enter concave points_mean" name="value8" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="value9">Symmetry Mean</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="value9" placeholder="Enter symmetry_mean" name="value9" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="value10">Fractal Dimension Mean</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="value10" placeholder="Enter fractal_dimension_mean" name="value10" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="value11">Radius SE</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="value11" placeholder="Enter radius_se" name="value11" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="value12">Texture SE</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="value12" placeholder="Enter texture_se" name="value12" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="value13">Perimeter SE</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="value13" placeholder="Enter perimeter_se" name="value13" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="value14">Area SE</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="value14" placeholder="Enter area_se" name="value14" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="value15">Smoothness SE</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="value15" placeholder="Enter smoothness_se" name="value15" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="value16">Compactness SE</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="value16" placeholder="Enter compactness_se" name="value16" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="value17">Concavity SE</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="value17" placeholder="Enter concavity_se" name="value17" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="value18">Concave Points SE</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="value18" placeholder="Enter concave points_se" name="value18" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="value19">Symmetry SE</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="value19" placeholder="Enter symmetry_se" name="value19" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="value20">Fractal Dimension SE</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="value20" placeholder="Enter fractal_dimension_se" name="value20" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="value21">Radius Worst</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="value21" placeholder="Enter radius_worst" name="value21" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="value22">Texture Worst</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="value22" placeholder="Enter texture_worst" name="value22" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="value23">Perimeter Worst</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="value23" placeholder="Enter perimeter_worst" name="value23" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="value24">Area Worst</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="value24" placeholder="Enter area_worst" name="value24" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="value25">Smoothness Worst</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="value25" placeholder="Enter smoothness_worst" name="value25" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="value26">Compactness Worst</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="value26" placeholder="Enter compactness_worst" name="value26" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="value27">Concavity Worst</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="value27" placeholder="Enter concavity_worst" name="value27" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="value28">Concave Points Worst</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="value28" placeholder="Enter concave points_worst" name="value28" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="value29">Symmetry Worst</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="value29" placeholder="Enter symmetry_worst" name="value29" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label col-sm-2" for="value30">Fractal Dimension Worst</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" id="value30" placeholder="Enter fractal_dimension_worst" name="value30" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10">
+                        <input class="btn btn-primary" type="submit" value="Submit Request">
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>© 2025 Breast Cancer Prediction Tool | All Rights Reserved</p>
+        </div>
+    </div>
+
+    <!-- Additional Script for Results Page -->
+    <script>
+        // This is where the result page script would go
+        // if you're on the result page
+        
+        // For the popup information
+        $(document).ready(function() {
+            // Information popup functionality
+            $("#what-is-cancer").click(function() {
+                $("#what-is-cancer-content").slideToggle();
+                $("#who-gets-cancer-content").slideUp();
+                $("#cancer-symptoms-content").slideUp();
+            });
+            
+            $("#who-gets-cancer").click(function() {
+                $("#who-gets-cancer-content").slideToggle();
+                $("#what-is-cancer-content").slideUp();
+                $("#cancer-symptoms-content").slideUp();
+            });
+            
+            $("#cancer-symptoms").click(function() {
+                $("#cancer-symptoms-content").slideToggle();
+                $("#what-is-cancer-content").slideUp();
+                $("#who-gets-cancer-content").slideUp();
+            });
+            
+            // Back to top button
+            var btn = $('#button');
+            $(window).scroll(function() {
+                if ($(window).scrollTop() > 300) {
+                    btn.addClass('show');
+                } else {
+                    btn.removeClass('show');
+                }
+            });
+            
+            btn.on('click', function(e) {
+                e.preventDefault();
+                $('html, body').animate({scrollTop:0}, '300');
+            });
+        });
+    </script>
+</body>
+</html>
